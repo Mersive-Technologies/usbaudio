@@ -1,28 +1,25 @@
-#include <libusb.h>
 #include <iostream>
+#include <libusb.h>
+#include <sstream>
 
 #include "UsbDevice.h"
 #include "UsbException.h"
 
 UsbDevice::UsbDevice( ) {
-    libusb_device **devs;
     if ( libusb_init( &ctx ) < 0 ) throw UsbException( "Couldn't init usb" );
-
     libusb_set_debug( ctx, 3 );
-    if ( libusb_get_device_list( ctx, &devs ) < 0 ) throw UsbException( "Couldn't get device list" );
 
     dev_handle = libusb_open_device_with_vid_pid( ctx, ID_VENDOR, ID_PRODUCT );
     if ( dev_handle == nullptr ) throw UsbException( "Couldn't open device" );
-    libusb_free_device_list( devs, 1 );
 
     detachKernel( CTRL_EP );
-    detachKernel( SPEAKER_EP );
+    detachKernel( SPEAKER_IFACE );
 
     claimInterface( CTRL_EP );
-    claimInterface( SPEAKER_EP );
+    claimInterface( SPEAKER_IFACE );
 
-    if ( libusb_set_interface_alt_setting( dev_handle, SPEAKER_EP, 1 ) < 0 ) {
-        throw UsbException( "Can't enable interface!" );
+    if ( libusb_set_interface_alt_setting( dev_handle, SPEAKER_IFACE, 1 ) < 0 ) {
+        throw UsbException( "Can't enable speaker!" );
     }
 }
 
@@ -36,10 +33,16 @@ void UsbDevice::play() {
     for(auto & xfer : xfers) {
         xfer = libusb_alloc_transfer(isoPktCnt);
         libusb_fill_iso_transfer(xfer, dev_handle, SPEAKER_EP, buffer, length, isoPktCnt, xferComplete, this, timeout);
-        if(libusb_submit_transfer(xfer) < 0) throw UsbException( "Can't submit ISO transfer!" );
+        libusb_set_iso_packet_lengths(xfer, pktSz);
+        int ret = libusb_submit_transfer(xfer);
+        if(ret < 0) {
+            std::ostringstream stringStream;
+            stringStream << "Can't submit ISO transfer: " << ret;
+            throw UsbException( stringStream.str() );
+        }
     }
 
-    while(libusb_handle_events( nullptr ) == 0);
+    while(libusb_handle_events( nullptr ) == LIBUSB_SUCCESS);
 }
 
 void UsbDevice::xferComplete(struct libusb_transfer *transfer) {

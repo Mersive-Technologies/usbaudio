@@ -3,6 +3,7 @@
 
 #define CTRL_EP 0
 #define SPEAKER_EP 1
+#define SPEAKER_IFACE 2
 #define ID_VENDOR 0x046d
 #define ID_PRODUCT 0x0867
 
