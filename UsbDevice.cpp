@@ -77,8 +77,8 @@ void UsbDevice::xferComplete( struct libusb_transfer *transfer ) {
     auto xfer = that->genXfer( );
     if ( libusb_submit_transfer( xfer ) != LIBUSB_SUCCESS ) throw UsbException( "Failed to complete transfer!" );
     std::cout << "Iso transfer complete!\n";
-    libusb_free_transfer( transfer );
     free( transfer->buffer );
+    libusb_free_transfer( transfer );
 }
 
 void UsbDevice::detachKernel( int interfaceId ) {
