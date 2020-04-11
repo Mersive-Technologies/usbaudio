@@ -1,6 +1,7 @@
 #include <iostream>
 #include <libusb.h>
 #include <sstream>
+#include <math.h>
 
 #include "UsbDevice.h"
 #include "UsbException.h"
@@ -42,22 +43,40 @@ void UsbDevice::submitXfer( libusb_transfer *xfer ) {
 }
 
 libusb_transfer *UsbDevice::genXfer( ) {
-    int isoPktCnt = 6;
-    size_t pktSz = 128;
-    auto *buffer = ( unsigned char * ) calloc( pktSz, isoPktCnt );
-    int length = pktSz * isoPktCnt;
-    int timeout = 1000;
-    auto xfer = libusb_alloc_transfer( isoPktCnt );
-    libusb_fill_iso_transfer( xfer, dev_handle, SPEAKER_EP, buffer, length, isoPktCnt, xferComplete, this, timeout );
-    libusb_set_iso_packet_lengths( xfer, pktSz );
+    std::lock_guard<std::mutex> guard( mutex );
+    int byteCnt = BYTES_PER_ISO_PKT * ISO_PKT_PER_FRAME;
+    int sampleCnt = byteCnt / CHANNEL_CNT / sizeof( SAMPLE_SZ );
+    auto *buffer = ( SAMPLE_SZ * ) calloc( sizeof( SAMPLE_SZ ), sampleCnt * CHANNEL_CNT );
+    int maxSampVol = pow(2, sizeof( SAMPLE_SZ ) * 8) / 2 - 1;
+    for ( int i = 0; i < sampleCnt; i++ ) {
+        float seconds = (float)(samplesPlayed + i) / (float)SAMPLE_RATE;
+        float cycles = A4 * seconds;
+        SAMPLE_SZ samp = sin(cycles * TAU) * maxSampVol;
+        buffer[i * 2 + 0] = samp;
+        buffer[i * 2 + 1] = samp;
+    }
+    samplesPlayed += sampleCnt;
+    auto xfer = libusb_alloc_transfer( ISO_PKT_PER_FRAME );
+    libusb_fill_iso_transfer(
+            xfer,
+            dev_handle,
+            SPEAKER_EP,
+            ( unsigned char * ) buffer,
+            byteCnt,
+            ISO_PKT_PER_FRAME,
+            xferComplete,
+            this,
+            TIMEOUT
+    );
+    libusb_set_iso_packet_lengths( xfer, BYTES_PER_ISO_PKT );
     return xfer;
 }
 
 void UsbDevice::xferComplete( struct libusb_transfer *transfer ) {
     auto that = ( UsbDevice * ) transfer->user_data;
     auto xfer = that->genXfer( );
-    if ( libusb_submit_transfer( xfer ) != LIBUSB_SUCCESS ) throw new UsbException( "Failed to complete transfer!" );
-    std::cout << "Iso transfer complete!";
+    if ( libusb_submit_transfer( xfer ) != LIBUSB_SUCCESS ) throw UsbException( "Failed to complete transfer!" );
+    std::cout << "Iso transfer complete!\n";
     libusb_free_transfer( transfer );
 }
 
