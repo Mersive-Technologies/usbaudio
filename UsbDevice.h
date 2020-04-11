@@ -42,6 +42,8 @@ public:
     libusb_transfer *genXfer( );
 
     void submitXfer( libusb_transfer *xfer );
+
+    void open( );
 };
 
 #endif

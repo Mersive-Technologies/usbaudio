@@ -7,6 +7,9 @@
 #include "UsbException.h"
 
 UsbDevice::UsbDevice( ) {
+}
+
+void UsbDevice::open( ) {
     if ( libusb_init( &ctx ) < 0 ) throw UsbException( "Couldn't init usb" );
     libusb_set_debug( ctx, 3 );
 
