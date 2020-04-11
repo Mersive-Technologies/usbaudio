@@ -47,11 +47,11 @@ libusb_transfer *UsbDevice::genXfer( ) {
     int byteCnt = BYTES_PER_ISO_PKT * ISO_PKT_PER_FRAME;
     int sampleCnt = byteCnt / CHANNEL_CNT / sizeof( SAMPLE_SZ );
     auto *buffer = ( SAMPLE_SZ * ) calloc( sizeof( SAMPLE_SZ ), sampleCnt * CHANNEL_CNT );
-    int maxSampVol = pow(2, sizeof( SAMPLE_SZ ) * 8) / 2 - 1;
+    int maxSampVol = pow( 2, sizeof( SAMPLE_SZ ) * 8 ) / 2 - 1;
     for ( int i = 0; i < sampleCnt; i++ ) {
-        float seconds = (float)(samplesPlayed + i) / (float)SAMPLE_RATE;
+        float seconds = ( float ) ( samplesPlayed + i ) / ( float ) SAMPLE_RATE;
         float cycles = A4 * seconds;
-        SAMPLE_SZ samp = sin(cycles * TAU) * maxSampVol;
+        SAMPLE_SZ samp = sin( cycles * TAU) * maxSampVol;
         buffer[i * 2 + 0] = samp;
         buffer[i * 2 + 1] = samp;
     }
@@ -78,6 +78,7 @@ void UsbDevice::xferComplete( struct libusb_transfer *transfer ) {
     if ( libusb_submit_transfer( xfer ) != LIBUSB_SUCCESS ) throw UsbException( "Failed to complete transfer!" );
     std::cout << "Iso transfer complete!\n";
     libusb_free_transfer( transfer );
+    free( transfer->buffer );
 }
 
 void UsbDevice::detachKernel( int interfaceId ) {
