@@ -8,6 +8,8 @@ int main( ) {
 
     UsbDevice usbDev;
 
+    usbDev.play();
+
 //    auto *data = new unsigned char[4]; //data to write
 //    data[0] = 'a';
 //    data[1] = 'b';
