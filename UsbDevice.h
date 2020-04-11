@@ -11,8 +11,8 @@ class UsbDevice {
 
     libusb_device_handle *dev_handle;
     libusb_context *ctx = nullptr;
-    libusb_transfer* xfers[3];
-    
+    libusb_transfer *xfers[3];
+
 public:
     UsbDevice( );
 
@@ -25,6 +25,10 @@ public:
     void play( );
 
     static void xferComplete( libusb_transfer *transfer );
+
+    libusb_transfer *genXfer( );
+
+    void submitXfer( libusb_transfer *xfer );
 };
 
 #endif
