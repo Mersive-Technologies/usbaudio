@@ -2,10 +2,9 @@
 #define UACPLAY_USBDEVICE_H
 
 #include <mutex>
+#include <libusb.h>
+#include "libusbwrapper.h"
 
-#define CTRL_EP 0
-#define SPEAKER_EP 1
-#define SPEAKER_IFACE 2
 #define ID_VENDOR 0x046d
 #define ID_PRODUCT 0x0867
 #define SAMPLE_RATE 32000
@@ -14,36 +13,37 @@
 #define TIMEOUT 1000
 #define A4 440.0f
 #define CHANNEL_CNT 2
-#define TAU (M_PI * 2.0)
+#define TAU ( M_PI * 2.0 )
 
 typedef int16_t SAMPLE_SZ;
 
-class UsbDevice {
+class UsbDevice
+{
 
-    u_int32_t samplesPlayed = 0;
-    std::mutex mutex;
-    libusb_device_handle *dev_handle;
-    libusb_context *ctx = nullptr;
-    libusb_transfer *xfers[3];
+    uint32_t         samplesPlayed = 0;
+    std::mutex       mutex;
+    libusb::context  _ctx;
+    libusb::device   _dev;
+    libusb_transfer* xfers[3];
+    int              _controlInterface = 0;
+    int              _speakerInterface = 3;
+    int              _alternateSetting = 1;
+    uint8_t          _speakerEndpoint  = 1;
 
 public:
-    UsbDevice( );
+    UsbDevice();
 
-    ~UsbDevice( );
+    ~UsbDevice();
 
-    void claimInterface( int id );
+    void play();
 
-    void detachKernel( int interfaceId );
+    static void xferComplete( libusb_transfer* transfer );
 
-    void play( );
+    libusb_transfer* genXfer();
 
-    static void xferComplete( libusb_transfer *transfer );
+    void submitXfer( libusb_transfer* xfer );
 
-    libusb_transfer *genXfer( );
-
-    void submitXfer( libusb_transfer *xfer );
-
-    void open( );
+    void open();
 };
 
 #endif

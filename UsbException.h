@@ -1,16 +1,12 @@
 #ifndef UACPLAY_USBEXCEPTION_H
 #define UACPLAY_USBEXCEPTION_H
 
-#include <exception>
+#include <stdexcept>
 #include <string>
 
-class UsbException : public std::exception {
-
-    virtual const char *what( ) const throw( );
-
-    std::string msg;
+class UsbException : public std::runtime_error {
 public:
-    UsbException( std::string msg );
+    UsbException( const char* msg );
 };
 
 #endif //UACPLAY_USBEXCEPTION_H

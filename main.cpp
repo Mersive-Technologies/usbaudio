@@ -1,14 +1,22 @@
-#include <libusb.h>
+#include <iostream>
+#include <stdexcept>
 #include "UsbDevice.h"
 
 using namespace std;
 
-int main( ) {
+int main()
+{
+    try
+    {
+        UsbDevice usbDev;
 
-    UsbDevice usbDev;
-
-    usbDev.open();
-    usbDev.play();
+        usbDev.open();
+        usbDev.play();
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 
     return 0;
 }

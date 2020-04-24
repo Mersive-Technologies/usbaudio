@@ -1,0 +1,23 @@
+---
+BasedOnStyle: WebKit
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignOperands: true
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Allman
+ContinuationIndentWidth: 8
+NamespaceIndentation: None
+SpacesInParentheses: true
+SpacesInAngles: true
+ColumnLimit: 118
+BinPackParameters: false
+BinPackArguments: false
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+SortIncludes: false
+AlwaysBreakTemplateDeclarations: true
+---
+Language:        Java
+BreakAfterJavaFieldAnnotations: true
+
